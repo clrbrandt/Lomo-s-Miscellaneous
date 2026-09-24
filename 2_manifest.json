@@ -1,0 +1,16 @@
+{
+  "short_name": "Lomo's",
+  "name": "Lomo's Miscellaneous",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3177/3177440.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "./index.html",
+  "scope": "./",
+  "background_color": "#1e293b",
+  "theme_color": "#1e293b",
+  "display": "standalone"
+}
