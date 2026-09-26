@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lomo's Miscellaneous CRM & Analytics</title>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#FFA500">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Header -->
+    <header class="bg-slate-800 border-b border-slate-700 p-4 sticky top-0 z-50 flex justify-between items-center shadow-md">
+        <div>
+            <h1 class="text-xl font-bold text-amber-400">Lomo's Miscellaneous</h1>
+            <p class="text-xs text-slate-400">Temporal Analytics & SASSA Cycle Intelligence</p>
+        </div>
+        <div class="text-xs bg-slate-700 px-3 py-1 rounded-full text-slate-300 font-medium">
+            RedMi 9T Edition
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="bg-slate-800/90 backdrop-blur border-b border-slate-700 grid grid-cols-4 p-1.5 text-xs sm:text-sm sticky top-16 z-40 text-center">
+        <button onclick="switchTab('pos')" id="btn-pos" class="nav-btn py-2 rounded-lg font-semibold text-amber-400 bg-slate-700 transition">POS</button>
+        <button onclick="switchTab('inventory')" id="btn-inventory" class="nav-btn py-2 rounded-lg text-slate-400 hover:text-slate-200 transition">Stock</button>
+        <button onclick="switchTab('analytics')" id="btn-analytics" class="nav-btn py-2 rounded-lg text-slate-400 hover:text-slate-200 transition">Analytics</button>
+        <button onclick="switchTab('crm')" id="btn-crm" class="nav-btn py-2 rounded-lg text-slate-400 hover:text-slate-200 transition">CRM</button>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="p-4 flex-1 max-w-4xl mx-auto w-full pb-20">
+
+        <!-- TAB 1: POS & Sales Logging -->
+        <section id="pos" class="tab-content active space-y-4">
+            <!-- Active Cycle Banner -->
+            <div id="cycle-banner" class="bg-amber-950/40 border border-amber-600/50 p-3 rounded-xl flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] uppercase tracking-wider text-amber-400 font-bold block">Current Cycle Status</span>
+                    <span id="current-cycle-text" class="text-xs text-slate-200 font-medium">Calculating calendar & SASSA phase...</span>
+                </div>
+                <div class="text-lg">📅</div>
+            </div>
+
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow">
+                <h2 class="text-lg font-semibold mb-3 text-amber-300">Record New Transaction</h2>
+                <form id="sale-form" onsubmit="handleSale(event)" class="space-y-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Customer Name</label>
+                        <input type="text" id="cust-name" required placeholder="e.g. John Doe" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-amber-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Select Product</label>
+                        <select id="product-select" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-amber-400">
+                            <!-- Populated via JS -->
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Quantity</label>
+                            <input type="number" id="sale-qty" min="1" value="1" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-amber-400">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Unit Price (R)</label>
+                            <input type="number" id="sale-price" step="0.01" min="0" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-amber-400">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Payment Method / Terms</label>
+                        <select id="payment-type" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-amber-400">
+                            <option value="Cash">Cash / Immediate Payment</option>
+                            <option value="Credit">Line of Credit (Short-term)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 rounded-lg transition">Complete & Log Transaction</button>
+                </form>
+            </div>
+
+            <!-- Recent Activity Log -->
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow">
+                <h3 class="text-sm font-semibold text-slate-300 mb-2">Recent Operations</h3>
+                <div id="recent-sales-list" class="space-y-2 text-sm text-slate-400">
+                    <p class="text-xs italic">No transactions recorded yet.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: Inventory & Stock Admin -->
+        <section id="inventory" class="tab-content space-y-4">
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-lg font-semibold text-amber-300">Stock Management</h2>
+                    <button onclick="resetStockLevels()" class="text-xs bg-red-900/50 text-red-300 border border-red-700 px-3 py-1.5 rounded-lg hover:bg-red-900 transition">Reset All Stock</button>
+                </div>
+                <p class="text-xs text-slate-400 mb-4">Admin control panel to audit, modify, and reset inventory counts.</p>
+                
+                <div id="inventory-list" class="space-y-3">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: Visual Analytics & Demand Forecasting -->
+        <section id="analytics" class="tab-content space-y-4">
+            <!-- Infographic Header Summary -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow">
+                    <span class="text-xs text-slate-400 block">Total Revenue Realized</span>
+                    <span id="stat-revenue" class="text-xl font-bold text-emerald-400">R0.00</span>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow">
+                    <span class="text-xs text-slate-400 block">Total Items Sold</span>
+                    <span id="stat-units" class="text-xl font-bold text-amber-400">0</span>
+                </div>
+            </div>
+
+            <!-- Lay Day & SASSA Velocity Insights -->
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow space-y-2">
+                <h3 class="text-sm font-semibold text-amber-300">Lay Day & Grant Liquidity Performance</h3>
+                <p class="text-xs text-slate-400">Sales volume tracked across key milestone windows (SASSA payout weeks, 15th, 20th, 25th, and Month-Ends).</p>
+                <div id="layday-breakdown" class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+            <!-- Product Demand Infographic -->
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow space-y-3">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-semibold text-amber-300">Demand & Sales Share</h2>
+                    <button onclick="exportAnalyticsCSV()" class="text-xs bg-slate-700 text-slate-200 border border-slate-600 px-3 py-1.5 rounded-lg hover:bg-slate-600 transition flex items-center gap-1">
+                        📥 Export Analytics CSV
+                    </button>
+                </div>
+                <div id="demand-infographic-list" class="space-y-3 pt-2">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+            <!-- Supply & Restocking Recommendations -->
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow space-y-3">
+                <h3 class="text-sm font-semibold text-slate-200">Supply & Purchasing Advisor</h3>
+                <div id="restock-advice-list" class="space-y-2">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: CRM & Credit Ledger -->
+        <section id="crm" class="tab-content space-y-4">
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow">
+                <h2 class="text-lg font-semibold text-amber-300 mb-1">Customer Segmentation & Payment Tracking</h2>
+                <p class="text-xs text-slate-400 mb-4">Behavioral segmentation correlated with cash vs. credit cycles.</p>
+                
+                <div id="customer-list" class="space-y-3">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Application Script -->
+    <script>
+        const defaultProducts = [
+            { id: 1, name: 'ActionWork', stock: 50, price: 150.00, soldCount: 0 },
+            { id: 2, name: 'AbdulUpDown', stock: 30, price: 250.00, soldCount: 0 },
+            { id: 3, name: 'Snoek', stock: 100, price: 85.00, soldCount: 0 },
+            { id: 4, name: 'ReservationA', stock: 20, price: 500.00, soldCount: 0 },
+            { id: 5, name: 'ReservationB', stock: 15, price: 750.00, soldCount: 0 }
+        ];
+
+        let state = {
+            products: JSON.parse(localStorage.getItem('lomos_products')) || defaultProducts,
+            sales: JSON.parse(localStorage.getItem('lomos_sales')) || [],
+            customers: JSON.parse(localStorage.getItem('lomos_customers')) || {}
+        };
+
+        function saveData() {
+            localStorage.setItem('lomos_products', JSON.stringify(state.products));
+            localStorage.setItem('lomos_sales', JSON.stringify(state.sales));
+            localStorage.setItem('lomos_customers', JSON.stringify(state.customers));
+            renderAll();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => {
+                el.classList.remove('text-amber-400', 'bg-slate-700');
+                el.classList.add('text-slate-400');
+            });
+            document.getElementById(tabId).classList.add('active');
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            activeBtn.classList.add('text-amber-400', 'bg-slate-700');
+            activeBtn.classList.remove('text-slate-400');
+        }
+
+        function getCalendarContext(dateObj = new Date()) {
+            const day = dateObj.getDate();
+            const daysInMonth = new Date(dateObj.getFullYear(), dateObj.getMonth() + 1, 0).getDate();
+            let tags = [];
+            if (day >= 1 && day <= 5) {
+                tags.push("👴👵 SASSA Grant Week (Older Persons/Disability)");
+            } else if (day >= 6 && day <= 10) {
+                tags.push("👶 SASSA Child Support Grant Window");
+            }
+            if (day === 1 || day >= daysInMonth - 2) {
+                tags.push("💰 Month-End Liquidity Spike");
+            }
+            if (day === 15) tags.push("📌 Mid-Month (15th Checkpoint)");
+            if (day === 20) tags.push("📌 20th Checkpoint");
+            if (day === 25) tags.push("📌 25th Milestone");
+            if (tags.length === 0) tags.push("📊 Standard Operational Window");
+
+            return {
+                dayNumber: day,
+                category: (day >= 1 && day <= 10) ? 'SASSA Window' : (day === 15 || day === 20 || day === 25) ? 'Milestone (15/20/25)' : (day === 1 || day >= daysInMonth - 2) ? 'Month-End' : 'Mid-Cycle',
+                descriptions: tags.join(' • ')
+            };
+        }
+
+        const productSelect = document.getElementById('product-select');
+        const salePriceInput = document.getElementById('sale-price');
+
+        function initProductDropdown() {
+            productSelect.innerHTML = '';
+            state.products.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.name;
+                opt.textContent = `${p.name} (Stock: ${p.stock}) - R${p.price.toFixed(2)}`;
+                productSelect.appendChild(opt);
+            });
+            if(state.products.length > 0 && !salePriceInput.value) {
+                salePriceInput.value = state.products[0].price;
+            }
+        }
+
+        productSelect.addEventListener('change', (e) => {
+            const selected = state.products.find(p => p.name === e.target.value);
+            if(selected) salePriceInput.value = selected.price;
+        });
+
+        function handleSale(e) {
+            e.preventDefault();
+            const custName = document.getElementById('cust-name').value.trim();
+            const productName = productSelect.value;
+            const qty = parseInt(document.getElementById('sale-qty').value);
+            const price = parseFloat(document.getElementById('sale-price').value);
+            const paymentType = document.getElementById('payment-type').value;
+            const total = qty * price;
+            const cycleInfo = getCalendarContext();
+
+            const product = state.products.find(p => p.name === productName);
+            if(product) {
+                product.stock = Math.max(0, product.stock - qty);
+                product.soldCount = (product.soldCount || 0) + qty;
+            }
+
+            const saleRecord = {
+                id: Date.now(),
+                customer: custName,
+                product: productName,
+                quantity: qty,
+                total: total,
+                type: paymentType,
+                cycleCategory: cycleInfo.category,
+                date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            };
+            state.sales.unshift(saleRecord);
+
+            if(!state.customers[custName]) {
+                state.customers[custName] = { totalSpend: 0, transactions: 0, creditOwed: 0, segment: 'New' };
+            }
+            const cust = state.customers[custName];
+            cust.totalSpend += total;
+            cust.transactions += 1;
+
+            if(paymentType === 'Credit') {
+                if (window.creditLedger) {
+                    window.creditLedger.recordCredit(saleRecord.id, custName, total, new Date().toISOString(), productName);
+                }
+                cust.creditOwed += total;
+            }
+
+            if(cust.totalSpend > 2000 || cust.transactions > 5) {
+                cust.segment = 'VIP Regular';
+            } else if(cust.totalSpend > 800) {
+                cust.segment = 'Active Contributor';
+            } else {
+                cust.segment = 'Casual Buyer';
+            }
+
+            saveData();
+            document.getElementById('sale-form').reset();
+            if(state.products.length > 0) salePriceInput.value = state.products[0].price;
+            alert('Transaction successfully logged and accounted for.');
+        }
+
+        function updateStock(productId, newStock) {
+            const prod = state.products.find(p => p.id === productId);
+            if(prod) {
+                prod.stock = parseInt(newStock) || 0;
+                saveData();
+            }
+        }
+
+        function updatePrice(productId, newPrice) {
+            const prod = state.products.find(p => p.id === productId);
+            if(prod) {
+                prod.price = parseFloat(newPrice) || 0;
+                saveData();
+            }
+        }
+
+        function resetStockLevels() {
+            if(confirm('Are you sure you want to reset all inventory counts to default baseline?')) {
+                state.products = JSON.parse(JSON.stringify(defaultProducts));
+                saveData();
+            }
+        }
+
+        function exportAnalyticsCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Date,Customer,Product,Quantity,Total_ZAR,Payment_Type,Cycle_Category\n";
+            state.sales.forEach(s => {
+                csvContent += `"${s.date}","${s.customer}","${s.product}",${s.quantity},${s.total},"${s.type}","${s.cycleCategory}"\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Lomos_Pivot_Ready_Report.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function renderAll() {
+            initProductDropdown();
+            const currentCycle = getCalendarContext();
+            document.getElementById('current-cycle-text').textContent = currentCycle.descriptions;
+
+            let totalRev = state.sales.reduce((acc, s) => acc + s.total, 0);
+            let totalUnits = state.products.reduce((acc, p) => acc + (p.soldCount || 0), 0);
+            document.getElementById('stat-revenue').textContent = `R${totalRev.toFixed(2)}`;
+            document.getElementById('stat-units').textContent = totalUnits;
+
+            let cycleStats = { 'SASSA Window': 0, 'Month-End': 0, 'Milestone (15/20/25)': 0, 'Mid-Cycle': 0 };
+            state.sales.forEach(s => {
+                if(cycleStats[s.cycleCategory] !== undefined) cycleStats[s.cycleCategory] += s.total;
+            });
+
+            const laydayContainer = document.getElementById('layday-breakdown');
+            laydayContainer.innerHTML = Object.keys(cycleStats).map(cat => `
+                <div class="bg-slate-900 p-2.5 rounded border border-slate-700/60 text-center">
+                    <span class="text-[10px] text-slate-400 block truncate">${cat}</span>
+                    <span class="text-sm font-bold text-amber-300">R${cycleStats[cat].toFixed(2)}</span>
+                </div>
+            `).join('');
+
+            const invList = document.getElementById('inventory-list');
+            invList.innerHTML = state.products.map(p => `
+                <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <div><span class="font-bold text-amber-400">${p.name}</span></div>
+                    <div class="flex items-center gap-3 w-full sm:w-auto justify-between">
+                        <div>
+                            <label class="text-[10px] text-slate-400 block">Stock Qty</label>
+                            <input type="number" value="${p.stock}" onchange="updateStock(${p.id}, this.value)" class="w-20 bg-slate-800 border border-slate-700 rounded p-1 text-sm text-center">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 block">Price (R)</label>
+                            <input type="number" step="0.01" value="${p.price}" onchange="updatePrice(${p.id}, this.value)" class="w-24 bg-slate-800 border border-slate-700 rounded p-1 text-sm text-center">
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            const maxSold = Math.max(...state.products.map(p => p.soldCount || 0), 1);
+            const infographicList = document.getElementById('demand-infographic-list');
+            infographicList.innerHTML = state.products.map(p => {
+                let sold = p.soldCount || 0;
+                let percentage = Math.round((sold / maxSold) * 100);
+                return `
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-700/60 space-y-1.5">
+                        <div class="flex justify-between text-xs">
+                            <span class="font-bold text-slate-200">${p.name}</span>
+                            <span class="text-amber-300 font-medium">${sold} units sold (R${(sold * p.price).toFixed(2)})</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                            <div class="bg-amber-400 h-full rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const restockList = document.getElementById('restock-advice-list');
+            let recommendations = state.products.map(p => {
+                let sold = p.soldCount || 0;
+                if(p.stock <= 5) {
+                    return `<div class="p-2.5 rounded bg-rose-950/40 border border-rose-800/60 text-xs text-rose-300">🚨 <b>Urgent Restock Needed:</b> ${p.name} has only ${p.stock} units remaining!</div>`;
+                } else if(sold > 5 && p.stock < 15) {
+                    return `<div class="p-2.5 rounded bg-amber-950/40 border border-amber-800/60 text-xs text-amber-300">⚠️ <b>High Demand Alert:</b> ${p.name} is moving fast. Consider restocking before the next SASSA/Month-end window.</div>`;
+                }
+                return null;
+            }).filter(Boolean);
+
+            restockList.innerHTML = recommendations.length === 0 ? `<p class="text-xs italic text-slate-400">All inventory levels are healthy relative to current sales velocity.</p>` : recommendations.join('');
+
+            const salesList = document.getElementById('recent-sales-list');
+            salesList.innerHTML = state.sales.length === 0 ? `<p class="text-xs italic">No transactions recorded yet.</p>` : state.sales.slice(0, 5).map(s => `
+                <div class="bg-slate-900 p-2.5 rounded border border-slate-700/50 flex justify-between items-center text-xs">
+                    <div>
+                        <span class="font-bold text-slate-200">${s.customer}</span> bought <span class="text-amber-300">${s.quantity}x ${s.product}</span>
+                        <div class="text-[10px] text-slate-500">${s.date} • <span class="${s.type === 'Credit' ? 'text-rose-400 font-semibold' : 'text-emerald-400'}">${s.type}</span> • <span class="text-amber-400/80">${s.cycleCategory}</span></div>
+                    </div>
+                    <div class="text-right font-bold text-emerald-400">R${s.total.toFixed(2)}</div>
+                </div>
+            `).join('');
+
+            const custContainer = document.getElementById('customer-list');
+            const custKeys = Object.keys(state.customers);
+            custContainer.innerHTML = custKeys.length === 0 ? `<p class="text-xs italic text-slate-400">No customer data learned yet. Log transactions to begin behavior tracking.</p>` : custKeys.map(name => {
+                const c = state.customers[name];
+                let eligibility = window.creditLedger ? window.creditLedger.calculateEligibility(name, c.totalSpend, c.transactions) : { eligible: false, limit: 0, reason: 'N/A' };
+                return `
+                    <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 space-y-1">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-amber-200">${name}</span>
+                            <span class="text-xs px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">${c.segment}</span>
+                        </div>
+                        <div class="grid grid-cols-3 text-xs text-slate-400 pt-1">
+                            <div>Total Spend: <span class="text-slate-200 font-semibold">R${c.totalSpend.toFixed(2)}</span></div>
+                            <div>Visits: <span class="text-slate-200 font-semibold">${c.transactions}</span></div>
+                            <div>Credit Owed: <span class="text-rose-400 font-semibold">R${c.creditOwed.toFixed(2)}</span></div>
+                        </div>
+                        <div class="text-[10px] text-slate-400 pt-1 border-t border-slate-800 mt-1 flex justify-between items-center">
+                            <span>Credit Status: <span class="${eligibility.eligible ? 'text-emerald-400 font-semibold' : 'text-slate-400'}">${eligibility.eligible ? 'Eligible (Limit: R' + eligibility.limit.toFixed(2) + ')' : 'Building History'}</span></span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        renderAll();
+    </script>
+    <!-- Service Worker & Credit Module Integration -->
+    <script src="./credit-ledger-enhanced.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('./sw.js').catch(err => {
+            console.log('Service Worker registration failed:', err);
+          });
+        }
+    </script>
+</body>
+</html>
