@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#2d5016">
+  <meta name="description" content="Lomo's Miscellaneous - Temporal Analytics & Governance for Informal Credit Operations">
+  
+  <title>Lomo's Miscellaneous | VolleMagasyn</title>
+  
+  <!-- PWA Manifest - CRITICAL for icons -->
+  <link rel="manifest" href="./manifest.json">
+  
+  <!-- Apple iOS Support (doesn't use manifest.json) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Lomo">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%232d5016' width='192' height='192'/><text x='96' y='120' font-size='80' fill='%23F5DEB3' text-anchor='middle' font-weight='bold'>V</text></svg>">
+  
+  <!-- Base Styles -->
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #2d5016;
+      --primary-dark: #1f3a0f;
+      --secondary: #4a6741;
+      --accent: #d4af37;
+      --danger: #c43d3d;
+      --success: #2d8659;
+      --neutral: #f5deb3;
+      --bg-light: #fafafa;
+      --bg-white: #ffffff;
+      --text-dark: #333333;
+      --text-muted: #999999;
+      --border: #e0e0e0;
+      --box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    html {
+      scroll-padding-top: env(safe-area-inset-top, 0px);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-dark);
+      background: var(--bg-light);
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* Header */
+    header {
+      background: var(--primary);
+      color: var(--neutral);
+      padding: 16px 20px;
+      text-align: center;
+      box-shadow: var(--box-shadow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin: 0;
+    }
+
+    header p {
+      font-size: 11px;
+      opacity: 0.9;
+      margin: 4px 0 0 0;
+    }
+
+    /* Tab Navigation */
+    .tab-buttons {
+      display: flex;
+      gap: 8px;
+      padding: 12px 12px;
+      background: var(--bg-white);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      box-shadow: var(--box-shadow);
+      position: sticky;
+      top: 60px;
+      z-index: 99;
+    }
+
+    .tab-btn {
+      flex: 0 0 auto;
+      padding: 8px 16px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-dark);
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    /* Tab Panes */
+    #tabs-container {
+      position: relative;
+    }
+
+    .tab-pane {
+      padding: 16px;
+      display: none;
+      animation: fadeIn 0.2s;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Tab Header */
+    .tab-header {
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--primary);
+    }
+
+    .tab-header h2 {
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+
+    .tab-header p {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 13px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--bg-white);
+      color: var(--text-dark);
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(45, 80, 22, 0.1);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background: var(--primary);
+      color: var(--neutral);
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+      box-shadow: 0 2px 6px rgba(45, 80, 22, 0.2);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-secondary {
+      background: var(--text-muted);
+      color: var(--bg-white);
+    }
+
+    .btn-secondary:hover {
+      background: var(--text-dark);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+    }
+
+    .btn-danger:hover {
+      background: #a82f2f;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-white);
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--box-shadow);
+    }
+
+    .card-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    /* Alerts */
+    .alert {
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      font-size: 12px;
+    }
+
+    .alert-success {
+      background: #e8f5e9;
+      color: var(--success);
+      border-left: 4px solid var(--success);
+    }
+
+    .alert-error {
+      background: #ffebee;
+      color: var(--danger);
+      border-left: 4px solid var(--danger);
+    }
+
+    .alert-info {
+      background: #e3f2fd;
+      color: #1976d2;
+      border-left: 4px solid #1976d2;
+    }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 18px;
+      }
+
+      .tab-buttons {
+        gap: 4px;
+        top: 56px;
+      }
+
+      .tab-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+
+      .tab-pane {
+        padding: 12px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
+  <!-- Governance Styles -->
+  <link rel="stylesheet" href="governance-styles.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <h1>📊 Lomo's Miscellaneous</h1>
+    <p>Temporal Analytics & Governance for Informal Credit</p>
+  </header>
+
+  <!-- TAB NAVIGATION -->
+  <div class="tab-buttons">
+    <button class="tab-btn active" onclick="switchTab('tab-pos')">🛒 POS</button>
+    <button class="tab-btn" onclick="switchTab('tab-crm')">👥 CRM</button>
+    <button class="tab-btn" onclick="switchTab('tab-analytics')">📈 Analytics</button>
+    <button class="tab-btn" onclick="switchTab('tab-inventory')">📦 Inventory</button>
+    <button class="tab-btn" onclick="switchTab('tab-governance')">📋 Governance</button>
+  </div>
+
+  <!-- TAB PANES -->
+  <div id="tabs-container">
+
+    <!-- ====== POS TAB ====== -->
+    <div id="tab-pos" class="tab-pane active">
+      <div class="tab-header">
+        <h2>🛒 Point of Sale</h2>
+        <p>Ring up items, process payment, complete transaction</p>
+      </div>
+
+      <div class="grid">
+        <!-- Left: Product Selection -->
+        <div>
+          <div class="card">
+            <h3 class="card-title">📦 Select Product</h3>
+            <div class="form-group">
+              <label>Product</label>
+              <select id="pos-product-select" onchange="pos_onProductSelect()">
+                <option value="">-- Choose Product --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Quantity</label>
+              <input type="number" id="pos-quantity" value="1" min="1">
+            </div>
+            <button class="btn" onclick="pos_addToCart()">➕ Add to Cart</button>
+          </div>
+
+          <!-- Customer Info -->
+          <div class="card">
+            <h3 class="card-title">👤 Customer (Optional)</h3>
+            <div class="form-group">
+              <label>Customer ID</label>
+              <input type="text" id="pos-customer-id" placeholder="walk-in">
+            </div>
+            <div class="form-group">
+              <label>Customer Name</label>
+              <input type="text" id="pos-customer-name" placeholder="Name or 'Walk-in'">
+            </div>
+            <button class="btn btn-secondary" onclick="pos_setCustomer()">✓ Set Customer</button>
+          </div>
+        </div>
+
+        <!-- Right: Shopping Cart -->
+        <div>
+          <div class="card">
+            <h3 class="card-title">🛍️ Shopping Cart</h3>
+            <div id="pos-cart-items" style="min-height: 200px; max-height: 300px; overflow-y: auto; border-bottom: 1px solid var(--border); margin-bottom: 12px;">
+              <p style="color: var(--text-muted); text-align: center; padding: 20px;">Cart is empty</p>
+            </div>
+
+            <div style="padding: 12px 0; border-top: 2px solid var(--primary);">
+              <div style="font-size: 14px; margin-bottom: 8px;">
+                <strong>Subtotal:</strong> R<span id="pos-cart-total">0.00</span>
+              </div>
+              <div class="form-group">
+                <label>Payment Method</label>
+                <select id="pos-payment-method">
+                  <option>Cash</option>
+                  <option>Mobile Money</option>
+                  <option>Credit</option>
+                </select>
+              </div>
+              <button class="btn" style="width: 100%; margin-bottom: 8px;" onclick="pos_processPayment()">✓ Process Payment</button>
+              <button class="btn btn-secondary" style="width: 100%;" onclick="pos_clearCart()">✕ Clear Cart</button>
+            </div>
+          </div>
+
+          <!-- Receipt Output -->
+          <div class="card">
+            <h3 class="card-title">🧾 Receipt</h3>
+            <div id="pos-receipt-output" style="background: var(--bg-light); padding: 8px; border-radius: 4px; font-family: monospace; font-size: 11px; white-space: pre-wrap; max-height: 200px; overflow-y: auto; color: var(--text-muted);">
+              [Receipt will appear here]
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== CRM TAB ====== -->
+    <div id="tab-crm" class="tab-pane">
+      <div class="tab-header">
+        <h2>👥 Customer Relationship Management</h2>
+        <p>Customer profiles, temporal patterns, next-transaction prediction</p>
+      </div>
+
+      <div class="grid">
+        <!-- Customer Search -->
+        <div>
+          <div class="card">
+            <h3 class="card-title">🔍 Find Customer</h3>
+            <div class="form-group">
+              <label>Customer ID</label>
+              <input type="text" id="crm-customer-search" placeholder="Enter customer ID">
+            </div>
+            <button class="btn" onclick="crm_searchCustomer()">🔍 Search</button>
+          </div>
+
+          <!-- Customer Segments -->
+          <div class="card">
+            <h3 class="card-title">📊 Customer Segments</h3>
+            <div id="crm-segments-list" style="font-size: 12px; line-height: 1.8;">
+              [Loading segments...]
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer Profile -->
+        <div>
+          <div class="card">
+            <h3 class="card-title">👤 Customer Profile</h3>
+            <div id="crm-profile" style="font-size: 12px; line-height: 1.8; color: var(--text-muted);">
+              [Select a customer to view profile]
+            </div>
+          </div>
+
+          <!-- Churn Risk -->
+          <div class="card">
+            <h3 class="card-title">⚠️ At-Risk Customers</h3>
+            <div id="crm-churn-risk" style="font-size: 12px; line-height: 1.8;">
+              [Loading...]
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== ANALYTICS TAB ====== -->
+    <div id="tab-analytics" class="tab-pane">
+      <div class="tab-header">
+        <h2>📈 Analytics & Insights</h2>
+        <p>Sales trends, SASSA correlations, temporal patterns</p>
+      </div>
+
+      <div class="grid">
+        <!-- Summary Cards -->
+        <div>
+          <div class="card">
+            <h3 class="card-title">📊 Today's Summary</h3>
+            <div id="analytics-daily-summary" style="font-size: 12px; line-height: 1.8;">
+              [Loading...]
+            </div>
+          </div>
+
+          <!-- SASSA Correlation -->
+          <div class="card">
+            <h3 class="card-title">📍 SASSA Correlation</h3>
+            <div id="analytics-sassa" style="font-size: 12px; line-height: 1.8;">
+              [Loading...]
+            </div>
+          </div>
+        </div>
+
+        <!-- Temporal Patterns -->
+        <div>
+          <div class="card">
+            <h3 class="card-title">⏰ Temporal Patterns</h3>
+            <div id="analytics-temporal" style="font-size: 12px; line-height: 1.8;">
+              [Loading...]
+            </div>
+          </div>
+
+          <!-- Cohort Insights -->
+          <div class="card">
+            <h3 class="card-title">👥 Cohort Insights</h3>
+            <div id="analytics-cohort" style="font-size: 12px; line-height: 1.8;">
+              [Loading...]
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== INVENTORY TAB ====== -->
+    <div id="tab-inventory" class="tab-pane">
+      <div class="tab-header">
+        <h2>📦 Inventory Management</h2>
+        <p>Stock levels, replenishments, manual adjustments</p>
+      </div>
+
+      <div class="grid">
+        <!-- Stock Levels -->
+        <div>
+          <div class="card">
+            <h3 class="card-title">📊 Current Stock</h3>
+            <div id="inventory-stock-list" style="font-size: 12px; line-height: 1.8;">
+              [Loading...]
+            </div>
+          </div>
+        </div>
+
+        <!-- Replenishment -->
+        <div>
+          <div class="card">
+            <h3 class="card-title">📦 Replenish Stock</h3>
+            <div class="form-group">
+              <label>Product</label>
+              <select id="inventory-product-select">
+                <option value="">-- Choose Product --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Quantity to Add</label>
+              <input type="number" id="inventory-qty" value="10" min="1">
+            </div>
+            <div class="form-group">
+              <label>Reason</label>
+              <input type="text" id="inventory-reason" placeholder="Supplier delivery, etc.">
+            </div>
+            <button class="btn" onclick="inventory_replenish()">✓ Log Replenishment</button>
+          </div>
+
+          <!-- System Reset -->
+          <div class="card">
+            <h3 class="card-title">🔄 System Management</h3>
+            <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 8px;">Reset all data for new fiscal period (CEO only)</p>
+            <button class="btn btn-danger" onclick="inventory_systemReset()">🔄 System Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== GOVERNANCE TAB (from governance-tab-html.html) ====== -->
+    <div id="tab-governance" class="tab-pane">
+      <div class="tab-header">
+        <h2>📋 Governance & Compliance</h2>
+        <p>Audit trail of all stock adjustments. Every change timestamped, reasoned, and attributed.</p>
+      </div>
+
+      <!-- FILTER BAR -->
+      <div class="governance-filter-bar">
+        <div>
+          <label for="governance-date-from">Date From</label>
+          <input type="date" id="governance-date-from">
+        </div>
+        
+        <div>
+          <label for="governance-date-to">Date To</label>
+          <input type="date" id="governance-date-to">
+        </div>
+        
+        <div>
+          <label for="governance-type-filter">Adjustment Type</label>
+          <select id="governance-type-filter">
+            <option value="all">All Types</option>
+            <option value="sale_deduction">Sale</option>
+            <option value="replenishment">Replenishment</option>
+            <option value="manual_adjustment">Manual Adjustment</option>
+            <option value="reset">Reset</option>
+          </select>
+        </div>
+        
+        <div>
+          <label for="governance-role-filter">Actor Role</label>
+          <select id="governance-role-filter">
+            <option value="all">All Roles</option>
+            <option value="CEO">CEO</option>
+            <option value="Board">Board</option>
+            <option value="Director">Director</option>
+            <option value="Staff">Staff</option>
+          </select>
+        </div>
+        
+        <button id="governance-filter-apply">Apply</button>
+        <button id="governance-filter-reset">Reset</button>
+      </div>
+
+      <!-- RESULT SUMMARY -->
+      <div class="governance-result-summary">
+        <span id="governance-result-count">Showing 0 adjustments</span>
+        <button id="governance-export-btn" onclick="window.governanceUI.exportReport();">
+          📊 Export Audit Report (CSV)
+        </button>
+      </div>
+
+      <!-- ADJUSTMENTS TABLE -->
+      <div class="governance-table-container">
+        <table class="governance-table">
+          <thead>
+            <tr>
+              <th>Time (SAST)</th>
+              <th>Type</th>
+              <th>SKU / Product</th>
+              <th>Qty</th>
+              <th>Actor</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="governance-table-body">
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 30px; color: #999;">
+                Loading adjustments...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ORGANIZATION STRUCTURE -->
+      <div class="governance-org-section">
+        <div class="governance-org-toggle" onclick="
+          const content = document.getElementById('governance-org-structure');
+          content.style.display = content.style.display === 'none' ? 'grid' : 'none';
+          this.textContent = content.style.display === 'none' ? '▶ Organization Structure' : '▼ Organization Structure';
+        ">
+          ▼ Organization Structure
+        </div>
+        <div id="governance-org-structure" class="org-tree">
+          <!-- Populated by GovernanceUI -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SCRIPTS (in order) -->
+
+  <!-- Core Data Modules -->
+  <script src="product-catalog.js"></script>
+  <script src="temporal-analytics-engine.js"></script>
+  <script src="credit-ledger-enhanced.js"></script>
+  <script src="prescriptive-engine.js"></script>
+
+  <!-- Governance Modules -->
+  <script src="actor-registry.js"></script>
+  <script src="stock-audit-ledger.js"></script>
+  <script src="governance-ui.js"></script>
+
+  <!-- CRM & POS -->
+  <script src="crm-cohort-analytics.js"></script>
+  <script src="pos-module.js"></script>
+
+  <!-- Service Worker -->
+  <script src="sw.js"></script>
+
+  <!-- UI Controller Logic -->
+  <script>
+    /**
+     * TAB SWITCHING
+     */
+    function switchTab(tabId) {
+      // Hide all panes
+      document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.remove('active');
+      });
+      
+      // Deselect all buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      // Show selected pane
+      document.getElementById(tabId).classList.add('active');
+      
+      // Select button
+      event.target.classList.add('active');
+      
+      // Initialize tabs if needed
+      if (tabId === 'tab-pos') {
+        pos_init();
+      } else if (tabId === 'tab-crm') {
+        crm_init();
+      } else if (tabId === 'tab-analytics') {
+        analytics_init();
+      } else if (tabId === 'tab-inventory') {
+        inventory_init();
+      } else if (tabId === 'tab-governance') {
+        if (!window.governanceUI.initialized) {
+          window.governanceUI.init();
+          window.governanceUI.initialized = true;
+        }
+        window.governanceUI.refresh();
+      }
+    }
+
+    /**
+     * POS MODULE FUNCTIONS
+     */
+    function pos_init() {
+      // Populate product dropdown
+      const select = document.getElementById('pos-product-select');
+      const products = window.posModule.getAvailableProducts();
+      
+      select.innerHTML = '<option value="">-- Choose Product --</option>';
+      products.forEach(p => {
+        const option = document.createElement('option');
+        option.value = JSON.stringify({ id: p.product_id, sku: p.sku, name: p.product_name, price: p.unit_price });
+        option.textContent = `${p.product_name} (R${p.unit_price.toFixed(2)}) - Stock: ${p.stock}`;
+        select.appendChild(option);
+      });
+
+      pos_renderCart();
+    }
+
+    function pos_onProductSelect() {
+      const select = document.getElementById('pos-product-select');
+      const data = JSON.parse(select.value || '{}');
+      // Auto-select quantity if needed
+      document.getElementById('pos-quantity').value = 1;
+    }
+
+    function pos_addToCart() {
+      const select = document.getElementById('pos-product-select');
+      const qty = parseInt(document.getElementById('pos-quantity').value);
+      
+      if (!select.value) {
+        alert('Select a product');
+        return;
+      }
+
+      const data = JSON.parse(select.value);
+      const result = window.posModule.addToCart(data.id, data.sku, data.name, qty, data.price);
+      
+      if (result.success) {
+        select.value = '';
+        document.getElementById('pos-quantity').value = 1;
+        pos_renderCart();
+      } else {
+        alert(result.message);
+      }
+    }
+
+    function pos_setCustomer() {
+      const id = document.getElementById('pos-customer-id').value || 'walk-in';
+      const name = document.getElementById('pos-customer-name').value || 'Walk-in';
+      window.posModule.setCustomer(id, name);
+      alert(`Customer set: ${name}`);
+    }
+
+    function pos_renderCart() {
+      const summary = window.posModule.getCartSummary();
+      const container = document.getElementById('pos-cart-items');
+      const totalEl = document.getElementById('pos-cart-total');
+      
+      totalEl.textContent = summary.total.toFixed(2);
+
+      if (window.posModule.cart.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 20px;">Cart is empty</p>';
+        return;
+      }
+
+      let html = '';
+      window.posModule.cart.forEach((item, idx) => {
+        html += `<div style="padding: 8px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <strong>${item.product_name}</strong><br>
+            <span style="font-size: 11px; color: var(--text-muted);">${item.quantity} × R${item.unit_price.toFixed(2)}</span>
+          </div>
+          <div>
+            <span style="font-weight: 600;">R${item.line_total.toFixed(2)}</span>
+            <button style="background: var(--danger); color: white; border: none; padding: 2px 6px; border-radius: 2px; font-size: 11px; cursor: pointer; margin-left: 6px;" onclick="pos_removeItem(${idx})">✕</button>
+          </div>
+        </div>`;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function pos_removeItem(idx) {
+      window.posModule.cart.splice(idx, 1);
+      pos_renderCart();
+    }
+
+    function pos_clearCart() {
+      if (confirm('Clear cart?')) {
+        window.posModule.clearCart();
+        document.getElementById('pos-customer-id').value = '';
+        document.getElementById('pos-customer-name').value = '';
+        pos_renderCart();
+      }
+    }
+
+    function pos_processPayment() {
+      const method = document.getElementById('pos-payment-method').value;
+      const result = window.posModule.processPayment(method);
+      
+      const outputEl = document.getElementById('pos-receipt-output');
+      if (result.success) {
+        outputEl.textContent = result.receipt;
+        alert(`✓ Transaction ${result.txn_id} completed!\nChange: R${result.change}`);
+        pos_init(); // Refresh product list (stock may have changed)
+      } else {
+        alert('❌ ' + result.message);
+      }
+    }
+
+    /**
+     * CRM MODULE FUNCTIONS
+     */
+    function crm_init() {
+      crm_renderSegments();
+      crm_renderChurnRisk();
+    }
+
+    function crm_searchCustomer() {
+      const id = document.getElementById('crm-customer-search').value;
+      const customer = window.crmCohortAnalytics.getCustomer(id);
+      
+      if (!customer) {
+        alert('Customer not found');
+        return;
+      }
+
+      const likelihood = window.crmCohortAnalytics.nextTransactionLikelihood(id);
+      const nextHour = window.crmCohortAnalytics.predictNextHour(id);
+      const nextDay = window.crmCohortAnalytics.predictNextDay(id);
+      const clv = window.crmCohortAnalytics.customerLifetimeValue(id);
+      const preferred = window.crmCohortAnalytics.preferredProducts(id, 3);
+
+      let html = `<strong>${customer.name}</strong><br><br>`;
+      html += `Transactions: ${customer.total_txns}<br>`;
+      html += `Total Spend: R${customer.total_spend.toFixed(2)}<br>`;
+      html += `Segment: ${customer.segment}<br><br>`;
+      html += `<strong>Predicted Next Transaction:</strong><br>`;
+      html += `Likelihood: ${likelihood}%<br>`;
+      html += `Hour: ${nextHour.hour}:00<br>`;
+      html += `Day: ${nextDay.day}<br><br>`;
+      html += `<strong>Lifetime Value:</strong><br>`;
+      html += `Predicted CLV: R${clv.predicted_clv}<br><br>`;
+      html += `<strong>Preferred Products:</strong><br>`;
+      preferred.forEach(p => {
+        html += `${p.product} (${p.count} purchases)<br>`;
+      });
+
+      document.getElementById('crm-profile').innerHTML = html;
+    }
+
+    function crm_renderSegments() {
+      const breakdown = window.crmCohortAnalytics.segmentBreakdown();
+      let html = '';
+      Object.entries(breakdown).forEach(([segment, data]) => {
+        html += `<div><strong>${segment}</strong>: ${data.count} customers, Avg Spend: R${data.avg_spend}</div>`;
+      });
+      document.getElementById('crm-segments-list').innerHTML = html || '[No customers yet]';
+    }
+
+    function crm_renderChurnRisk() {
+      const at_risk = window.crmCohortAnalytics.churnRiskAnalysis();
+      let html = '';
+      at_risk.slice(0, 5).forEach(c => {
+        html += `<div><span style="color: ${c.risk_level === 'HIGH' ? 'var(--danger)' : '#ff9800'};">${c.risk_level}</span> ${c.name} (${c.days_since_last} days)</div>`;
+      });
+      document.getElementById('crm-churn-risk').innerHTML = html || '[No at-risk customers]';
+    }
+
+    /**
+     * ANALYTICS MODULE FUNCTIONS
+     */
+    function analytics_init() {
+      const daily = window.posModule.getDailySummary();
+      const cohort = window.crmCohortAnalytics.getCohortInsights();
+      const sassa = window.temporalAnalytics.sassaCorrelationAnalysis();
+
+      let html = `Date: ${daily.date}<br>Transactions: ${daily.total_transactions}<br>Total Sales: R${daily.total_sales}`;
+      document.getElementById('analytics-daily-summary').innerHTML = html;
+
+      html = `Total Customers: ${cohort.total_customers}<br>Total Spend: R${cohort.total_spend.toFixed(2)}<br>Avg per Customer: R${cohort.avg_customer_spend}`;
+      document.getElementById('analytics-cohort').innerHTML = html;
+
+      html = `<strong>Popular Hours:</strong><br>`;
+      Object.entries(cohort.hour_popularity).slice(0, 3).forEach(([h, count]) => {
+        html += `${h}:00 (${count} txns)<br>`;
+      });
+      document.getElementById('analytics-temporal').innerHTML = html;
+
+      html = `<strong>SASSA Demand Shift:</strong><br>`;
+      Object.entries(sassa.demand_shift_by_cycle || {}).forEach(([cycle, shift]) => {
+        html += `${cycle}: ${shift}%<br>`;
+      });
+      document.getElementById('analytics-sassa').innerHTML = html || '[Waiting for data]';
+    }
+
+    /**
+     * INVENTORY MODULE FUNCTIONS
+     */
+    function inventory_init() {
+      // Populate inventory product dropdown
+      const select = document.getElementById('inventory-product-select');
+      const products = window.productCatalog.getAll();
+      
+      select.innerHTML = '<option value="">-- Choose Product --</option>';
+      products.forEach(p => {
+        const option = document.createElement('option');
+        option.value = JSON.stringify({ id: p.product_id, sku: p.sku, name: p.product_name });
+        option.textContent = `${p.product_name} (Stock: ${p.stock})`;
+        select.appendChild(option);
+      });
+
+      inventory_renderStockList();
+    }
+
+    function inventory_renderStockList() {
+      const products = window.productCatalog.getAll();
+      let html = '';
+      products.forEach(p => {
+        const status = p.stock > 5 ? '✓' : '⚠️';
+        html += `<div style="padding: 6px 0; border-bottom: 1px solid var(--border);">${status} ${p.product_name}: <strong>${p.stock}</strong> units</div>`;
+      });
+      document.getElementById('inventory-stock-list').innerHTML = html;
+    }
+
+    function inventory_replenish() {
+      const select = document.getElementById('inventory-product-select');
+      const qty = parseInt(document.getElementById('inventory-qty').value);
+      const reason = document.getElementById('inventory-reason').value;
+
+      if (!select.value) {
+        alert('Select a product');
+        return;
+      }
+
+      const data = JSON.parse(select.value);
+      const product = window.productCatalog.getBySKU(data.sku);
+      const before = product.stock;
+      const after = before + qty;
+
+      window.productCatalog.updateStock(data.sku, after);
+      window.stockAuditLedger.logMovement(
+        'replenishment',
+        data.id,
+        data.sku,
+        before,
+        after,
+        qty,
+        'director-ops', // Default director
+        reason,
+        null
+      );
+
+      alert(`✓ Replenished ${data.name}: ${qty} units`);
+      select.value = '';
+      document.getElementById('inventory-qty').value = 10;
+      document.getElementById('inventory-reason').value = '';
+      inventory_init();
+      window.governanceUI.refresh();
+    }
+
+    function inventory_systemReset() {
+      if (!confirm('RESET ALL DATA? This cannot be undone. Type "RESET" to confirm.')) return;
+      const confirmed = prompt('Type RESET to confirm:');
+      if (confirmed !== 'RESET') return;
+
+      window.productCatalog.reset();
+      window.temporalAnalytics.reset();
+      window.crmCohortAnalytics.reset();
+      window.stockAuditLedger.logMovement('reset', 0, 'SYSTEM', 0, 0, 0, 'charle-lr-brandt', 'System-wide reset to clean slate', null);
+
+      alert('✓ System reset complete');
+      pos_init();
+      window.governanceUI.refresh();
+    }
+
+    /**
+     * PAGE INITIALIZATION
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('✅ Lomo\'s Miscellaneous PWA Loaded');
+      console.log('Modules:', { temporalAnalytics: !!window.temporalAnalytics, posModule: !!window.posModule, actorRegistry: !!window.actorRegistry });
+      
+      // Initialize first tab
+      pos_init();
+
+      // Register service worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(e => console.log('SW registration failed'));
+      }
+    });
+  </script>
+
+</body>
+</html>
