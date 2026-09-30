@@ -21,8 +21,8 @@ class ProductCatalog {
             sku: 'AW-50', 
             size: 'R50', 
             stock: 50, 
-            price: 150.00, 
-            costPrice: 100.00,
+            price: 50.00, 
+            costPrice: 30.00,
             soldCount: 0, 
             totalRevenue: 0,
             lastRestockDate: null 
@@ -31,8 +31,8 @@ class ProductCatalog {
             sku: 'AW-30', 
             size: 'R30', 
             stock: 50, 
-            price: 95.00, 
-            costPrice: 60.00,
+            price: 30.00, 
+            costPrice: 30.00,
             soldCount: 0, 
             totalRevenue: 0,
             lastRestockDate: null 
@@ -48,8 +48,8 @@ class ProductCatalog {
             sku: 'AUD-30', 
             size: 'R30', 
             stock: 30, 
-            price: 250.00, 
-            costPrice: 150.00,
+            price: 30.00, 
+            costPrice: 15.00,
             soldCount: 0, 
             totalRevenue: 0,
             lastRestockDate: null 
@@ -58,8 +58,8 @@ class ProductCatalog {
             sku: 'AUD-15', 
             size: 'R15', 
             stock: 30, 
-            price: 125.00, 
-            costPrice: 75.00,
+            price: 15.00, 
+            costPrice: 15.00,
             soldCount: 0, 
             totalRevenue: 0,
             lastRestockDate: null 
@@ -75,8 +75,8 @@ class ProductCatalog {
             sku: 'SNK-50', 
             size: 'R50', 
             stock: 100, 
-            price: 85.00, 
-            costPrice: 50.00,
+            price: 50.00, 
+            costPrice: 30.00,
             soldCount: 0, 
             totalRevenue: 0,
             lastRestockDate: null 
@@ -85,7 +85,7 @@ class ProductCatalog {
             sku: 'SNK-30', 
             size: 'R30', 
             stock: 100, 
-            price: 50.00, 
+            price: 30.00, 
             costPrice: 30.00,
             soldCount: 0, 
             totalRevenue: 0,
@@ -101,6 +101,26 @@ class ProductCatalog {
     if (saved) {
       this.products = JSON.parse(saved);
     }
+    this.applyPriceFix();
+  }
+
+  /**
+   * One-time correction for devices that already saved the old (wrong) prices.
+   * Sets price + cost from the defaults, keeps stock and sales counts.
+   */
+  applyPriceFix() {
+    const flag = 'lomos_price_fix_v1';
+    if (localStorage.getItem(flag)) return;
+    const defaults = this.initializeProducts();
+    this.products.forEach(p => {
+      p.variants.forEach(v => {
+        defaults.forEach(dp => dp.variants.forEach(dv => {
+          if (dv.sku === v.sku) { v.price = dv.price; v.costPrice = dv.costPrice; }
+        }));
+      });
+    });
+    this.save();
+    localStorage.setItem(flag, '1');
   }
 
   save() {
@@ -204,6 +224,16 @@ class ProductCatalog {
     const variant = this.getVariant(productId, sku);
     if (variant) {
       variant.price = parseFloat(newPrice) || 0;
+      this.save();
+      return true;
+    }
+    return false;
+  }
+
+  updateCost(productId, sku, newCost) {
+    const variant = this.getVariant(productId, sku);
+    if (variant) {
+      variant.costPrice = parseFloat(newCost) || 0;
       this.save();
       return true;
     }

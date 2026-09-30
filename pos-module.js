@@ -3,8 +3,8 @@
  * 
  * Complete point-of-sale system:
  * - Ring up items
- * - Apply payment methods
- * - Record transactions (temporal + CRM + audit)
+ * - Apply payment methods (full, part-payment, or full credit)
+ * - Record transactions (temporal + CRM + audit + credit ledger)
  * - Auto-adjust stock
  * - Generate receipt
  */
@@ -95,17 +95,42 @@ class POSModule {
 
   /**
    * Process payment & complete transaction
+   *
+   * amount_tendered:
+   *   - null/blank  -> paid in full (or R0 paid if method is 'Credit')
+   *   - less than total -> the shortfall goes on the customer's credit line
+   *   - more than total -> change is given
    */
   processPayment(payment_method, amount_tendered = null) {
     if (this.cart.length === 0) {
       return { success: false, message: 'Cart is empty' };
     }
 
-    const total = this.getCartTotal();
-    const tendered = amount_tendered || total;
+    const round2 = n => Math.round(n * 100) / 100;
+    const total = round2(this.getCartTotal());
 
-    if (tendered < total) {
-      return { success: false, message: `Insufficient payment. Need R${total.toFixed(2)}, got R${tendered.toFixed(2)}` };
+    let tendered;
+    if (amount_tendered === null || amount_tendered === undefined || amount_tendered === '') {
+      tendered = payment_method === 'Credit' ? 0 : total;
+    } else {
+      tendered = parseFloat(amount_tendered);
+    }
+    if (isNaN(tendered) || tendered < 0) {
+      return { success: false, message: 'Amount paid must be R0 or more.' };
+    }
+
+    const paid = Math.min(tendered, total);
+    const credit_balance = round2(total - paid);
+    const change = round2(Math.max(0, tendered - total));
+
+    // Anything on credit needs a named customer
+    const cust = this.current_customer;
+    const custName = cust && cust.name ? cust.name.trim() : '';
+    if (credit_balance > 0 && (!custName || custName.toLowerCase().startsWith('walk-in'))) {
+      return {
+        success: false,
+        message: `Enter the customer's name to put R${credit_balance.toFixed(2)} on credit.`
+      };
     }
 
     // Generate transaction ID
@@ -115,6 +140,9 @@ class POSModule {
     const now = new Date();
     const cycle = window.temporalAnalytics.detectCycle(now);
     const timestamp_sast = window.temporalAnalytics.formatSAST(now);
+
+    // Fully on credit is recorded as a Credit sale
+    const record_method = (credit_balance > 0 && paid === 0) ? 'Credit' : payment_method;
 
     // Process each cart item
     this.cart.forEach(item => {
@@ -126,7 +154,7 @@ class POSModule {
         item.quantity,
         item.unit_price,
         item.line_total,
-        payment_method,
+        record_method,
         this.current_customer?.id || 'walk-in',
         this.current_customer?.name || 'Walk-in Customer'
       );
@@ -157,15 +185,21 @@ class POSModule {
           this.current_customer.name,
           item.sku,
           item.line_total,
-          payment_method,
+          record_method,
           timestamp_sast,
           cycle
         );
       }
     });
 
+    // Put the unpaid part on the customer's credit line
+    if (credit_balance > 0) {
+      const summary = this.cart.map(i => `${i.quantity}x ${i.product_name} (${i.sku})`).join(', ');
+      window.creditLedger.recordCredit(txn_id, custName, credit_balance, now.toISOString(), summary);
+    }
+
     // Generate receipt
-    const receipt = this.generateReceipt(txn_id, total, tendered, payment_method, timestamp_sast);
+    const receipt = this.generateReceipt(txn_id, total, tendered, payment_method, timestamp_sast, credit_balance);
 
     // Clear cart for next transaction
     this.clearCart();
@@ -174,8 +208,10 @@ class POSModule {
       success: true,
       txn_id: txn_id,
       total: total,
-      amount_paid: tendered,
-      change: (tendered - total).toFixed(2),
+      amount_paid: paid,
+      amount_tendered: tendered,
+      credit_balance: credit_balance,
+      change: change.toFixed(2),
       receipt: receipt
     };
   }
@@ -183,7 +219,7 @@ class POSModule {
   /**
    * Generate receipt text
    */
-  generateReceipt(txn_id, total, tendered, payment_method, timestamp) {
+  generateReceipt(txn_id, total, tendered, payment_method, timestamp, credit_balance = 0) {
     let receipt = '═══════════════════════════════════════\n';
     receipt += '        Lomo\'s Miscellaneous\n';
     receipt += '═══════════════════════════════════════\n\n';
@@ -210,8 +246,14 @@ class POSModule {
     receipt += '───────────────────────────────────────\n';
     receipt += `SUBTOTAL:                     R${total.toFixed(2).padStart(8)}\n`;
     receipt += `Payment Method:              ${payment_method}\n`;
-    receipt += `Amount Tendered:             R${tendered.toFixed(2).padStart(8)}\n`;
-    receipt += `Change:                      R${(tendered - total).toFixed(2).padStart(8)}\n`;
+    if (credit_balance > 0) {
+      const paid = Math.min(tendered, total);
+      receipt += `Amount Paid:                 R${paid.toFixed(2).padStart(8)}\n`;
+      receipt += `ON CREDIT:                   R${credit_balance.toFixed(2).padStart(8)}\n`;
+    } else {
+      receipt += `Amount Tendered:             R${tendered.toFixed(2).padStart(8)}\n`;
+      receipt += `Change:                      R${(tendered - total).toFixed(2).padStart(8)}\n`;
+    }
     receipt += '\n═══════════════════════════════════════\n';
     receipt += '      Thank you for shopping!\n';
     receipt += '═══════════════════════════════════════\n';
